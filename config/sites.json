@@ -1,0 +1,31 @@
+{
+  "sites": [
+    {
+      "name": "The Guardian - Tech",
+      "url": "https://www.theguardian.com/technology",
+      "article_selector": "div.fc-item",
+      "title_selector": "span.js-headline-text",
+      "link_selector": "a.js-headline-text",
+      "excerpt_selector": "div.fc-item__standfirst",
+      "keywords": ["AI", "tech", "software", "Google", "Apple", "Microsoft"]
+    },
+    {
+      "name": "BBC News - Technology",
+      "url": "https://www.bbc.com/news/technology",
+      "article_selector": "div[data-testid='anchor-inner-wrapper']",
+      "title_selector": "h3",
+      "link_selector": "a",
+      "excerpt_selector": "p",
+      "keywords": []
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com",
+      "article_selector": "tr.athing",
+      "title_selector": "span.titleline a",
+      "link_selector": "span.titleline a",
+      "excerpt_selector": "",
+      "keywords": ["AI", "LLM", "startup", "open source"]
+    }
+  ]
+}
