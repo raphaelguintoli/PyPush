@@ -232,7 +232,7 @@ schedule>=1.2
 
 ## License
 
-MIT — use it, fork it, build on it.
+Labazui.
 
 ---
 
