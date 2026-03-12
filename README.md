@@ -232,7 +232,7 @@ schedule>=1.2
 
 ## License
 
-Labazui.
+No licence.
 
 ---
 
