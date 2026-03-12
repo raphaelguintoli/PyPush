@@ -1,1 +1,89 @@
 
+name: News Auto-Poster (Free)
+
+on:
+  schedule:
+    # Runs every hour. Adjust as needed:
+    #   Every 2 hours:   "0 */2 * * *"
+    #   Twice daily:     "0 9,17 * * *"
+    #   Once daily 9am:  "0 9 * * *"
+    - cron: "0 * * * *"
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — print posts without publishing"
+        required: false
+        default: "false"
+        type: choice
+        options: ["true", "false"]
+      max_posts:
+        description: "Max articles to post per run (default: 3)"
+        required: false
+        default: "3"
+
+jobs:
+  post-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to commit posted_articles.json cache
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore posted articles cache
+        uses: actions/cache@v4
+        with:
+          path: posted_articles.json
+          key: posted-cache-${{ github.run_id }}
+          restore-keys: posted-cache-
+
+      - name: Run News Auto-Poster
+        env:
+          # ── Groq (free Llama 3 AI) ──────────────────────────────────
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+          # ── X / Twitter API v2 ──────────────────────────────────────
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+
+          # ── Bluesky ─────────────────────────────────────────────────
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+
+          # ── Runtime config ──────────────────────────────────────────
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          MAX_POSTS_PER_RUN: ${{ github.event.inputs.max_posts || '3' }}
+          POST_TO_X: "true"
+          POST_TO_BLUESKY: "true"
+
+        run: |
+          cd src
+          python main.py
+
+      - name: Commit updated posted_articles.json
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add posted_articles.json || true
+          git diff --staged --quiet || git commit -m "chore: update posted articles cache [skip ci]"
+          git push || true
